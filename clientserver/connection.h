@@ -53,8 +53,10 @@ public:
 	unsigned char read() const;
 	
 	/* Connection cannot be copied */
-	Connection(const Connection&) = delete;
-	Connection& operator=(const Connection&) = delete;
+	
+	/*Commented these away to be able to create the messagehandler*/
+	//Connection(const Connection&) = delete;
+	//Connection& operator=(const Connection&) = delete;
 protected:
 	/* The socket number that this connections communicates on */
 	int my_socket;

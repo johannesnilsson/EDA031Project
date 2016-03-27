@@ -58,13 +58,23 @@ int main(int argc, char* argv[]){
 			try {
 				int nbr = readNumber(conn);
 				string result;
-				if (nbr > 0) {
-					result = "positive";
-				} else if (nbr == 0) {
-					result = "zero";
-				} else {
-					result = "negative";
-				}
+				/*Dags att kolla alla möjliga commands*/
+				if (nbr == 1) {
+					result = "COM_LISTING_NG";
+				} else if (nbr == 2) {
+					result = "COM_CREATE_NG";
+				} else if(nbr == 3){
+					result = "COM_DELETE_NG";
+				} else if(nbr == 4){
+					result = "COM_LIST_ART";
+				} else if(nbr == 5){
+					result = "COM_CREATE_ART";
+				} else if(nbr == 6){
+					result = "COM_DELETE_ART";
+				} else if(nbr == 7){
+					result = "COM_GET_ART";
+				} 
+
 				writeString(conn, result);
 			} catch (ConnectionClosedException&) {
 				server.deregisterConnection(conn);
