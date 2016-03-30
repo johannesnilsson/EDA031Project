@@ -25,7 +25,7 @@ using namespace std;
 Persistant_Database::Persistant_Database(){
 
 	int status;
- 	status = mkdir("c:/DBRoot", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+ 	status = mkdir("/h/d8/o/dat12jn2/DBRoot", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
  	if(status == 0){
 		cout << "Persistant_Database has been created!" << endl;
  	} else if(status == -1){
@@ -51,8 +51,8 @@ void Persistant_Database::createNewsGroup(string& theName){
 	//	db.insert(make_pair(uniquenbr, myNewsGroup));
 		
 		string lol = to_string(++uniquenbr);
-		string dir = "c:/DBRoot/";
-		dir += "1"; // OM TO_STRING HADE FUNKAT MED FATTIGA CYGWIN KANSKE???!?!?!
+		string dir = "/h/d8/o/dat12jn2/DBRoot/";
+		dir += lol; // OM TO_STRING HADE FUNKAT MED FATTIGA CYGWIN KANSKE???!?!?!
 		dir += " ";
 		dir += theName;
 		int status = mkdir((char*)dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -82,7 +82,7 @@ void Persistant_Database::deleteNewsGroup(int idToBeRemoved){
 	bool rmFlag = false;
 	DIR *pdir;
 	struct dirent *pent;
-	string dir = "c:/DBRoot";
+	string dir = "/h/d8/o/dat12jn2/DBRoot";
 	// idToBeRemoved NEEDS THE TO_STRING
 	//dir += "/";
 	//dir += "1*"; 
@@ -111,8 +111,12 @@ void Persistant_Database::deleteNewsGroup(int idToBeRemoved){
 			ss >> id >> name;
 		} 
 		//THIS 1 SHOULD BE id if the fucking to_string would work...
-		if(1 == idToBeRemoved){
-			string temp = dir += "/1*";
+				
+		if(stoi(id) == idToBeRemoved){
+			string temp = dir;
+			temp += "/";
+			temp += id;
+			temp += "*";
 			//dir += "/1*";
 			//dir += pent->d_name;
 			string command = "rm -rf ";
@@ -152,7 +156,7 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 	DIR *pdir;
 	struct dirent *pent;
 
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
