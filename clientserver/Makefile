@@ -11,7 +11,7 @@ CC  = g++
 # if you use clang++ and wish to use libc++ instead of libstdc++.
 CPPFLAGS =  -std=c++11
 CXXFLAGS =  -O2 -Wall -Wextra -pedantic-errors -Wold-style-cast 
-CXXFLAGS += -std=c++11 
+CXXFLAGS += -std=c++11
 CXXFLAGS += -g
 #CXXFLAGS =  -stdlib=libc++
 #CPPFLAGS =  -stdlib=libc++
@@ -22,8 +22,8 @@ all: libclientserver.a
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
 # Doesn't seem to do any damage on other systems.
 
-libclientserver.a: connection.o server.o messagehandler.o cache_database.o
-	ar rv libclientserver.a  connection.o server.o messagehandler.o cache_database.o
+libclientserver.a: connection.o server.o messagehandler.o cache_database.o persistant_database.o
+	ar rv libclientserver.a  connection.o server.o messagehandler.o cache_database.o persistant_database.o
 	ranlib libclientserver.a
 
 # Phony targets
