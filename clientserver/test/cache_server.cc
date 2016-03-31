@@ -5,7 +5,7 @@
 #include "messagehandler.h"
 #include "protocol.h"
 //#include "common.h"
-#include "cache_database.h"
+//#include "cache_database.h"
 #include "exceptions.h"
 
 #include <memory>
@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include "persistant_database.h"
 
 using namespace std;
 
@@ -39,7 +40,8 @@ int main(int argc, char* argv[]){
 	}
 	
 	MessageHandler myMsgHandler;
-	Cache_Database myDB;
+	//Cache_Database myDB;
+	Persistant_Database myDB;
 
 	while (true) {
 		auto conn = server.waitForActivity();

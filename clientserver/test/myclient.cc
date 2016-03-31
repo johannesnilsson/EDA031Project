@@ -127,7 +127,9 @@ int main(int argc, char* argv[]) {
 			//if(command == "mkng"){
 				string name;
 				cout << "Enter a name for the new NewsGroup!" << endl;
-				cin >> name;
+				cin.ignore();
+				getline(cin, name);
+				cout << "The name you just entered: " << name << endl;
 
 				myMsgHandlr.sendCode(Protocol::COM_CREATE_NG);
 				myMsgHandlr.sendStringParameter(name);

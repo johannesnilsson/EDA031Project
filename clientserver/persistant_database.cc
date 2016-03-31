@@ -15,7 +15,7 @@
 #include <stdio.h>		/*catching errno*/
 #include <dirent.h>		/*readdir*/
 #include <string>		/*string*/
-#include <sstream>
+#include <sstream>		/*ofstream*/
 #include <cstdio>		/*remove*/
 
 
@@ -65,17 +65,23 @@ void Persistant_Database::createNewsGroup(string& theName){
 
 		stringstream ss(tempstr);
 		string id;
-		string name;
-		while(ss){
-			ss >> id >> name;
-		} 
+		
+		ss >> id;
+		
 		if(id > maxID){
 			maxID = id;
+
 		}
-	} // BEHÖER NOG CLOSEDIR(PDIR) HÄR NGNSTANS
+	}
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	closedir(pdir); // BEHÖER NOG CLOSEDIR(PDIR) HÄR NGNSTANS
 	
 	cout << "the maxID variable: " << maxID << endl;
 	uniquenbr = atoi(maxID.c_str());
+	
 	*/
 	cout << "entering Persistant_Database createNG" << endl;
 
@@ -92,6 +98,7 @@ void Persistant_Database::createNewsGroup(string& theName){
 		dir += "1";//lol; // OM TO_STRING HADE FUNKAT MED FATTIGA CYGWIN KANSKE???!?!?!
 		dir += " ";
 		dir += theName;
+		cout << "the DIR to create: " << dir << endl;
 		int status = mkdir((char*)dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		
 		if(status == 0){
@@ -210,22 +217,31 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 		stringstream ss(tempstr);
 		string id;
 		string name;
-		while(ss){
-			ss >> id >> name;
+			
+		string tempname;
+		ss >> id;
+		while(ss >> name){
+			cout << "SS: " << name << endl;
+			tempname += name;
+			tempname += " "; 
 		} 
 
-		cout << "id is:" << id << " name is: " << name << endl;
-		NewsGroup myNewsGroup(name);
+		//while(ss){
+		//	ss >> id >> name;
+		//} 
+
+		cout << "id is:" << id << " name is: " << tempname << endl;
+		NewsGroup myNewsGroup(tempname);
 		myNewsGroup.id = atoi(id.c_str());
 		
 		if(atoi(id.c_str()) != 0) {
 			tempVec.push_back(myNewsGroup);
 		}
 		
-		for(auto it = tempVec.begin(); it < tempVec.end(); ++it){
-			cout << "WRITING FORLOOP" << endl << endl;
-			cout << it->name << it->id << endl;
-		}
+		// for(auto it = tempVec.begin(); it < tempVec.end(); ++it){
+		// 	cout << "WRITING FORLOOP" << endl << endl;
+		// 	cout << it->name << it->id << endl;
+		// }
 
 	}
 	if (errno){
@@ -266,8 +282,9 @@ void Persistant_Database::createArticle(	string& title, string& author,
 		stringstream ss(tempstr);
 		string id;
 		string name;
+		ss >> id;
 		while(ss){
-			ss >> id >> name;
+			ss >> name;
 		} 
 		if(atoi(id.c_str()) == groupID){
 			createflag = true;
@@ -311,61 +328,440 @@ void Persistant_Database::createArticle(	string& title, string& author,
 	// }
 }
 void Persistant_Database::deleteArticle(int groupID, int articleID){
-	auto it = db.find(groupID);
-	if(it != db.end()){
-		
-		auto remover = remove_if(it->second.theArticles.begin(), 
-		it->second.theArticles.end(), 
-		[&](Article myR){return myR.id == articleID;});
-		
-		if(remover == it->second.theArticles.end()){
-			throw ArticleDoesNotExistException();
-			cout << "throw: no such article found" << endl;
-		}
-		it->second.theArticles.erase(remover, it->second.theArticles.end());
- 
-	} else {
-		throw NewsGroupDoesNotExistException();
-		cout << "throw: no such group found" << endl;
+	
+	string tempdir = "c:/DBRoot/";
+	bool foundNG = false;
+	bool foundArt = false;
+	DIR *pdir;
+	struct dirent *pent;
+	pdir=opendir("c:/DBRoot"); 
+	if (!pdir){
+		printf ("opendir() failure; terminating");
+		exit(1);
 	}
+	errno=0;
+	while ((pent=readdir(pdir))){
+		if (!strcmp(pent->d_name, ".") || !strcmp(pent->d_name, ".."))
+          {
+             continue;
+          }
+		printf("%s", pent->d_name);
+		string tempstr(pent->d_name);
+
+		stringstream ss(tempstr);
+		string id;
+		string name;
+		//while(ss){
+		//	ss >> id >> name;
+		//}
+
+		string tempname;
+		ss >> id;
+		while(ss >> name){
+			cout << "SS: " << name << endl;
+			tempname += name;
+			tempname += "\\ "; 
+		} 
+		tempname.pop_back();
+
+		if(atoi(id.c_str()) == groupID){
+			foundNG = true;
+			
+			DIR *pdir2;
+			struct dirent *pent2;
+			string dir = "c:/DBRoot/";
+			dir += pent->d_name;
+			tempdir += id;
+			tempdir += "\\ ";
+			tempdir += tempname;
+			
+
+
+			cout << "the new DIR: " << dir << endl;
+			pdir2=opendir(dir.c_str()); 
+			if (!pdir2){
+				printf ("opendir() failure; terminating");
+				exit(1);
+			}
+			errno=0;
+			
+			while ((pent2=readdir(pdir2))){
+				if (!strcmp(pent2->d_name, ".") || !strcmp(pent2->d_name, ".."))
+		          {
+		             continue;
+		          }
+				printf("%s", pent2->d_name);
+				string tempstr(pent2->d_name);
+
+				stringstream ss(tempstr);
+				string id;
+				string name;
+				ss >> id;
+				while(ss){
+					ss >> name;
+				} 
+				cout << "PRINTING ID: " << id << endl;
+				if(atoi(id.c_str()) == articleID){
+					foundArt = true;
+					cout << "DELETE THE ARTICLE! " << endl;
+					string command = "rm -f ";
+					command += tempdir;
+					command += "/";
+					command += id;
+					//command += "\\ ";
+					command += "*";
+					//command += name;
+					//command += "*";
+
+					cout << "THE ART DEL COMMAND: " << command << endl; 
+					system(command.c_str());
+					
+
+				}
+				if(!foundNG){
+					cout << "Could not find specified NewsGroup!" << endl;
+					throw NewsGroupDoesNotExistException();
+				}
+				if(!foundArt){
+					cout << "Could not find the specified Article!" << endl;
+				}
+				
+				cout << "id is:" << id << " name is: " << name << endl;
+	}
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	closedir(pdir2);
+
+		}
+		if(!foundNG){
+			cout << "Could not find specified NewsGroup!" << endl;
+			throw NewsGroupDoesNotExistException();
+		}
+		
+		cout << "id is:" << id << " name is: " << name << endl;
+	}
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	closedir(pdir);
+
+
+	// auto it = db.find(groupID);
+	// if(it != db.end()){
+		
+	// 	auto remover = remove_if(it->second.theArticles.begin(), 
+	// 	it->second.theArticles.end(), 
+	// 	[&](Article myR){return myR.id == articleID;});
+		
+	// 	if(remover == it->second.theArticles.end()){
+	// 		throw ArticleDoesNotExistException();
+	// 		cout << "throw: no such article found" << endl;
+	// 	}
+	// 	it->second.theArticles.erase(remover, it->second.theArticles.end());
+ 
+	// } else {
+	// 	throw NewsGroupDoesNotExistException();
+	// 	cout << "throw: no such group found" << endl;
+	// }
 }
 vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 	vector<Article> tempVec;
 	
-	auto it = db.find(inNewsGroup);
-	if(it != db.end()){
-		for(unsigned int i = 0; i < it->second.theArticles.size(); ++i){
-			tempVec.push_back(it->second.theArticles[i]);
-		}
-	} else {
-		throw NewsGroupDoesNotExistException();
-		cout << "throw no such group found" << endl;
+	DIR *pdir;
+	struct dirent *pent;
+
+	pdir=opendir("c:/DBRoot"); 
+	if (!pdir){
+		printf ("opendir() failure; terminating");
+		exit(1);
 	}
+	errno=0;
+	while ((pent=readdir(pdir))){
+		if (!strcmp(pent->d_name, ".") || !strcmp(pent->d_name, ".."))
+        {
+            continue;
+        }
+		printf("%s", pent->d_name);
+		string tempstr(pent->d_name);
+
+		stringstream ss(tempstr);
+		string id;
+		string name;
+		ss >> id;
+		while(ss){
+			ss >> name;
+		} 
+
+		cout << "THE NAME: " << name << "THE ID: " << id << endl;
+		
+		/*--------read2 start -------------------*/
+		if(atoi(id.c_str()) == inNewsGroup){
+			cout << "FOUND THE CORRECT NEWSGORUP TO LIST ARTICLES IN" << endl;
+			
+
+			DIR *pdir2;
+			struct dirent *pent2;
+
+			string dir = "c:/DBRoot/";
+			dir += pent->d_name;
+			cout << "opening second dir: " << dir << endl;
+			pdir2=opendir(dir.c_str()); 
+			if (!pdir2){
+				printf ("opendir() failure; terminating");
+				exit(1);
+			}
+			errno=0;
+			while ((pent2=readdir(pdir2))){
+				if (!strcmp(pent2->d_name, ".") || !strcmp(pent2->d_name, ".."))
+		          {
+		             continue;
+		          }
+				printf("%s", pent2->d_name);
+				string tempstr(pent2->d_name);
+
+				stringstream ss(tempstr);
+				string id;
+				string name;
+				string tempname;
+
+				ss >> id;
+				while(ss >> name){
+					cout << "SS: " << name << endl;
+					tempname += name;
+					tempname += " "; 
+				} 
+				cout << "ART NAME: " << name << endl;
+				cout << "TEMP NAME: " << tempname << endl << endl << endl;
+				string lol = "";
+				string lol2 = "";
+
+				Article myArticle(tempname, lol, lol2);
+				myArticle.id = atoi(id.c_str());
+				
+				if(atoi(id.c_str()) != 0) {
+					tempVec.push_back(myArticle);
+				}
+
+				
+
+				
+				
+				
+				
+				
+				// for(auto it = tempVec.begin(); it < tempVec.end(); ++it){
+				// 	cout << "WRITING FORLOOP" << endl << endl;
+				// 	cout << it->title << it->id << endl;
+				// }
+
+			}
+			if (errno){
+			printf ("readdir() failure; terminating");
+			exit(1);
+			}
+			closedir(pdir2);
+
+		}
+
+		/*--------read2 slut -------------------*/
+
+	
+
+	}
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	closedir(pdir);
+
+
+
+	// auto it = db.find(inNewsGroup);
+	// if(it != db.end()){
+	// 	for(unsigned int i = 0; i < it->second.theArticles.size(); ++i){
+	// 		tempVec.push_back(it->second.theArticles[i]);
+	// 	}
+	// } else {
+	// 	throw NewsGroupDoesNotExistException();
+	// 	cout << "throw no such group found" << endl;
+	// }
 
 	return tempVec;
 
 }
 Article Persistant_Database::readArticle(int groupID, int articleID){
+	string title;
+	string author;
+	string content;
 
-	auto it = db.find(groupID);
-	if(it != db.end()){
-		
-		cout << "går in här?" << endl;
-		for(unsigned int i = 0; i < it->second.theArticles.size(); ++i){
-			cout << "inne i loopen " << i << endl;
-			if(it->second.theArticles[i].id == articleID) {
-				cout << "hittade rätt artikel" << endl;
-				return it->second.theArticles[i];
-			}
-		}
-		throw ArticleDoesNotExistException();
-		cout << "throw: could not find article exception" << endl;
-
-		} else {
-			throw NewsGroupDoesNotExistException();
-			cout << "could not find group errer" << endl;
+	DIR *pdir;
+	struct dirent *pent;
+	pdir=opendir("c:/DBRoot"); 
+	if (!pdir){
+		printf ("opendir() failure; terminating");
+		exit(1);
 	}
-	
+	errno=0;
+	while ((pent=readdir(pdir))){
+		if (!strcmp(pent->d_name, ".") || !strcmp(pent->d_name, ".."))
+          {
+             continue;
+          }
+		printf("%s", pent->d_name);
+		string tempstr(pent->d_name);
+
+		stringstream ss(tempstr);
+		string id;
+		string name;
+		ss >> id;
+		while(ss){
+			ss >> name;
+		} 
+
+		if(atoi(id.c_str()) == groupID){
+			/*SECOND READ*/
+			DIR *pdir2;
+			struct dirent *pent2;
+			string newdir = "c:/DBRoot/";
+			newdir += pent->d_name;
+			cout << "the new dir to read from: " << newdir << endl;
+			pdir2=opendir(newdir.c_str()); 
+			if (!pdir2){
+				printf ("opendir() failure; terminating");
+				exit(1);
+			}
+			errno=0;
+			while ((pent2=readdir(pdir2))){
+				if (!strcmp(pent2->d_name, ".") || !strcmp(pent2->d_name, ".."))
+		          {
+		             continue;
+		          }
+				printf("%s", pent2->d_name);
+				string tempstr(pent2->d_name);
+
+				stringstream ss(tempstr);
+				string id;
+				string name;
+				string tempname;
+				ss >> id;
+				while(ss >> name){
+					tempname += name;
+					tempname += " ";
+				} 
+				cout << "TEMPNAME: " << tempname << endl;
+
+				cout << "THE NAME BEFORE STRIP" << tempname << endl;
+				if(atoi(id.c_str()) == articleID){
+					for(unsigned int i = 0; i < tempname.length() - 4; ++i){
+						title += tempname[i];
+					}
+					cout << "TITLE CREATED: " << title << endl;
+					cout << "Found the Article to read " << endl;
+
+					string articleDir = "c:\\DBRoot\\";
+					articleDir += pent->d_name;
+					articleDir += "\\";
+					articleDir += "1"; // this should be id.to_string()
+					articleDir += " ";
+					articleDir += tempname;
+					cout << "The made articlename: " << articleDir << endl;
+					cout << "the made articlename in c: " << articleDir.c_str() << endl;
+					articleDir.pop_back(); // lösningen................... haha lol
+					//FATTAR INTE DETTA..................!!!!!!!!!!AAAH
+					//cout << strncmp(articleDir.c_str(), "c:\\DBRoot\\1 Java\\1 this is a title with many spaces.txt", 55) <<endl;
+					//cout << strcmp(articleDir.c_str(), "c:\\DBRoot\\1 Java\\1 this is a title with many spaces.txt") << endl;
+				//	cout << articleDir.length() << endl;
+				//	for(unsigned int i = 0; i < articleDir.length(); ++i){
+				//		cout << "for: " << articleDir[i] << endl;
+				//	}
+					//Well, problems with different separators in windows/linux
+					ifstream inputFile(articleDir);
+					//cout << "the lol name: " << "c:\\DBRoot\\1 Java\\1 this is a title with many spaces.txt" << endl;
+					//ifstream inputFile("c:\\DBRoot\\1 Java\\1 this is a title with many spaces.txt");
+
+					//c:/DBRoot/1 Java/1 this is a title with many spaces.txt
+					string templine;
+					int whilecounter = 0;
+					while(getline(inputFile,templine)){
+						if(whilecounter == 0){
+							for(unsigned int k = 12; k < templine.length(); ++k){
+								author += templine[k];
+							}
+						}
+						if(whilecounter != 0){
+						content += templine;
+						}
+
+						whilecounter++;
+					}
+
+
+
+
+
+					
+				}
+				
+				
+
+			}
+			if (errno){
+			printf ("readdir() failure; terminating");
+			exit(1);
+			}
+			closedir(pdir2);
+			/* END OF SECOND READ*/
+		}
+		
+		
+
+	}
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	closedir(pdir);
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// auto it = db.find(groupID);
+	// if(it != db.end()){
+		
+	// 	cout << "går in här?" << endl;
+	// 	for(unsigned int i = 0; i < it->second.theArticles.size(); ++i){
+	// 		cout << "inne i loopen " << i << endl;
+	// 		if(it->second.theArticles[i].id == articleID) {
+	// 			cout << "hittade rätt artikel" << endl;
+	// 			return it->second.theArticles[i];
+	// 		}
+	// 	}
+	// 	throw ArticleDoesNotExistException();
+	// 	cout << "throw: could not find article exception" << endl;
+
+	// 	} else {
+	// 		throw NewsGroupDoesNotExistException();
+	// 		cout << "could not find group errer" << endl;
+	// }
+					cout << "THE CREATED author: " << author << endl;
+					cout << "THE CREATED CONTENT: " << content << endl;
+
+					
+
+	Article myArticle(title, author, content);
+	return myArticle;
 }
 
 
