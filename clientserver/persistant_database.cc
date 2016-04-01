@@ -23,7 +23,7 @@ using namespace std;
 
 
 Persistant_Database::Persistant_Database(){
-
+	int maxID2 = 0;
 	int status;
  	status = mkdir("c:/DBRoot", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
  	if(status == 0){
@@ -31,7 +31,112 @@ Persistant_Database::Persistant_Database(){
  	} else if(status == -1){
  		cout << "Successfully read existing database!" << endl;
  	}
-	uniquenbr = 0;
+	cout << "vart fastnar vi? #1 " << endl;
+ 	int maxID = 0;
+ 	cout << "vart fastnar vi? #1.1 " << endl;
+	DIR *pdir;
+	cout << "vart fastnar vi? #1.2 " << endl;
+	struct dirent *pent;
+	cout << "vart fastnar vi? #2 " << endl;
+	
+	pdir=opendir("c:/DBRoot"); 
+	if (!pdir){
+		printf ("opendir() failure; terminating");
+		throw NewsGroupDoesNotExistException();
+		exit(1);
+	}
+	cout << "vart fastnar vi? #3 " << endl;
+	errno=0;
+	cout << "har hoppat över ..? " << endl;
+	while ((pent=readdir(pdir))){
+		 if (!strcmp(pent->d_name, ".") || !strcmp(pent->d_name, ".."))
+          {
+          	cout << " SKIPPAR punkter?" << endl;
+             continue;
+          }
+ 		cout << "EFTER ÖVERHOPPNINGEN" << endl;
+		cout << "the pent->d_name: " << pent->d_name << endl;
+		//printf("%s", pent->d_name);
+		string tempstr(pent->d_name);
+
+		stringstream ss(tempstr);
+		string id;
+		string name;
+		string tempname;
+
+
+		ss >> id;
+		while(ss >> name){
+			tempname += name;
+			tempname += "\\ ";
+		}
+		tempname.pop_back();
+
+		
+		string newdir = "c:/DBRoot/";
+		newdir += pent->d_name;
+		DIR *pdir2;
+		struct dirent *pent2;
+
+		cout << "THE NEW DIR TO OPEN: " << newdir << endl;
+		pdir2=opendir(newdir.c_str()); 
+		if (!pdir2){
+			printf ("opendir() failure; terminating");
+			throw NewsGroupDoesNotExistException();
+			exit(1);
+		}
+		errno=0;
+		cout << "har hoppat över ..? " << endl;
+		while ((pent2=readdir(pdir2))){
+			 if (!strcmp(pent2->d_name, ".") || !strcmp(pent2->d_name, ".."))
+	          {
+	             continue;
+	          }
+	 		cout << "EFTER ÖVERHOPPNINGEN" << endl;
+			cout << "the pent2->d_name: " << pent2->d_name << endl;
+			//printf("%s", pent2->d_name);
+			string tempstr(pent2->d_name);
+
+			stringstream ss(tempstr);
+			string id;
+			
+			ss >> id;
+			cout << "ID IS: " << id << endl;
+			if(atoi(id.c_str()) > maxID){
+				
+				maxID2 = atoi(id.c_str());
+				cout << "MAXID2: " << maxID2 << endl;
+			}
+		}
+		if (errno){
+		printf ("readdir() failure; terminating");
+		exit(1);
+		}
+		closedir(pdir2);
+
+
+		
+		if(atoi(id.c_str()) > maxID){
+			maxID = atoi(id.c_str());
+			cout << "MaxID: " << maxID << endl;
+		}
+
+
+	}
+	cout << "vart fastnar vi? #4 " << endl;
+	if (errno){
+	printf ("readdir() failure; terminating");
+	exit(1);
+	}
+	cout << "vart fastnar vi? #5 " << endl;
+	closedir(pdir); // BEHÖER NOG CLOSEDIR(PDIR) HÄR NGNSTANS
+	
+	cout << "the maxID variable: " << maxID << endl;
+	uniquenbr = maxID;
+
+
+
+	//uniquenbr = 0;
 	uniquenbr2 = 0;
 }
 	
@@ -250,7 +355,7 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 	}
 	closedir(pdir);
 
-
+	reverse(tempVec.begin(), tempVec.end());
 	return tempVec;
 }
 
@@ -588,7 +693,7 @@ vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 	// 	throw NewsGroupDoesNotExistException();
 	// 	cout << "throw no such group found" << endl;
 	// }
-
+	reverse(tempVec.begin(), tempVec.end());
 	return tempVec;
 
 }
