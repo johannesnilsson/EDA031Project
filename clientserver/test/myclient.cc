@@ -12,6 +12,7 @@
 #include <map>
 #include <iterator>
 #include <algorithm>
+#include <regex>
 
 using namespace std;
 
@@ -37,6 +38,30 @@ string readString(const Connection& conn) {
 	}
 	return s;
 }
+bool checkIfDigit(const string& IDtoCheck){
+
+
+//return !IDtoCheck.empty() && find_if(IDtoCheck.begin(),
+//IDtoCheck.end(), [] (char c) { return !isdigit(c); }) == IDtoCheck.end();
+
+return !IDtoCheck.empty() && regex_match(IDtoCheck, regex("[0-9]+"));
+} 
+bool checkIfValid(string& s, int& artID){
+	int articleID;
+	if(!checkIfDigit(s)){
+		cout << " Error: Invalid input! Must be a positive integer! " << endl;
+		return false;
+		}
+
+		try{
+			articleID = stoi(s);				
+		} catch(out_of_range& e){
+			cout << "Error: Integer out of range!" << endl;
+			return false;
+		}
+	artID = articleID;
+	return true;
+}
 void welcomeScreen(string name){
 	cout<<"Welcome to the: \n";
 	cout<< endl;
@@ -52,6 +77,7 @@ void welcomeScreen(string name){
 	cout<< "Type a command to preform or type\n";
 	cout<< "'help' to get list of available commands! " << endl;
 }
+
 int main(int argc, char* argv[]) {
 	if (argc != 3) {
 		cerr << "Usage: myclient host-name port-number" << endl;
@@ -79,7 +105,10 @@ int main(int argc, char* argv[]) {
 	myMsgHandlr.changeConnection(conn);
 	//Server server(port); //WHAT?
 	
-	while (cin >> command) {
+	 while (getline(cin, command)/*cin >> command*/) {
+	// nu har vi coomna,d om vi har mellanslag, skicka med error
+
+// cout wrong format, or else continue with the word.
 		try {
 			//cout << command << " <- cmd is ...";
 			if(command == "help"){
@@ -93,6 +122,7 @@ int main(int argc, char* argv[]) {
 				cout << "Command: readart (read article) Used to read the specified Article" << endl;
 				cout << "Command: quit (quit) Used to exit the program!" << endl;
 				cout << "-------------------------------------------------------------------------" << endl;
+				command.clear();
 				continue;
 			}
 			if(command == "lsng"){
@@ -113,21 +143,22 @@ int main(int argc, char* argv[]) {
 					if(code == Protocol::ANS_END){
 						if(theList.empty()){
 							cout << "No NewsGroups to list." << endl;
+							command.clear();
 							continue;
 						}
 						cout << "Group ID: \t Group name:" << endl;
-						for_each(theList.begin(), theList.end(), 
+						for_each(theList.rbegin(), theList.rend(), 
 							[](pair<int,string> mypair){cout << mypair.first << "\t\t " << mypair.second << endl;});
-						
+						command.clear();
 						continue;
 						}
 				} 
 			}
-			if(is_permutation(command.begin(), command.end(), "mkng")){
-			//if(command == "mkng"){
+			//if(is_permutation(command.begin(), command.end(), "mkng")){
+			if(command == "mkng"){
 				string name;
 				cout << "Enter a name for the new NewsGroup!" << endl;
-				cin.ignore();
+				//cin.ignore();
 				getline(cin, name);
 				cout << "The name you just entered: " << name << endl;
 
@@ -148,14 +179,21 @@ int main(int argc, char* argv[]) {
 					}
 					code = myMsgHandlr.recvCode();
 					if(code == Protocol::ANS_END){
+						command.clear();
 						continue;
 					}
 				}
 			}
 			if(command == "rmng"){
 				int ID;
+				string IDstring;
 				cout << "Enter the ID of the NewsGroup to delete!" << endl;
-				cin >> ID;
+				//cin >> ID;
+				getline(cin, IDstring);
+				
+				if(!checkIfValid(IDstring, ID)){
+				continue;
+				}
 
 				myMsgHandlr.sendCode(Protocol::COM_DELETE_NG);
 				myMsgHandlr.sendIntParameter(ID);
@@ -174,20 +212,26 @@ int main(int argc, char* argv[]) {
 					}
 					code = myMsgHandlr.recvCode();
 					if(code == Protocol::ANS_END){
+						command.clear();
 						continue;
 					}
 				}
 			}
 			if(command == "mkart"){
 				int newsGroup;
+				string newsGroupstring;
 				string title;
 				string authour;
 				string content;
 				
 				cout << "Enter the ID of the NewsGroup the Article belongs to!" << endl;
-				//getline(cin, newsGroup);
-				cin >> newsGroup;
-				cin.ignore(); // used to flush the 'newline' before getline
+				getline(cin, newsGroupstring);
+				//cin >> newsGroup;
+				//cin.ignore(); // used to flush the 'newline' before getline
+
+				if(!checkIfValid(newsGroupstring, newsGroup)){
+				continue;
+				}
 				
 				cout << "Enter the title of the Article to create." << endl;
 				getline(cin, title);
@@ -227,9 +271,16 @@ int main(int argc, char* argv[]) {
 			if(command == "lsart"){
 				map<int, string> articleList;
 				int groupID;
+				string groupIDstring;
 				cout << "Enter which NewsGroup's articles you wish to list!" << endl;
-				cin >> groupID;
+				//cin >> groupID;
 
+				getline(cin, groupIDstring);
+
+				if(!checkIfValid(groupIDstring, groupID)){
+				continue;
+				}
+				
 				myMsgHandlr.sendCode(Protocol::COM_LIST_ART);
 				myMsgHandlr.sendIntParameter(groupID);
 				myMsgHandlr.sendCode(Protocol::COM_END);
@@ -259,7 +310,7 @@ int main(int argc, char* argv[]) {
 							continue;
 						}
 						cout << "Article ID:" << "\t" << "Article name: " << endl;
-						for_each(articleList.begin(), articleList.end(), 
+						for_each(articleList.rbegin(), articleList.rend(), 
 							[](pair<int,string> mypair){cout << mypair.first << "\t\t" << mypair.second << endl;});
 						continue;
 					}
@@ -268,11 +319,21 @@ int main(int argc, char* argv[]) {
 			if(command == "rmart"){
 				int groupID;
 				int articleID;
+				string groupIDstring;
+				string articleIDstring;
 
 				cout << "Enter the ID of the NewsGroup" << endl;
-				cin >> groupID;
+				getline(cin, groupIDstring);
+
+				if(!checkIfValid(groupIDstring, groupID)){
+				continue;
+				}
+				
 				cout << "Enter the ID of the Article" << endl;
-				cin >> articleID;
+				getline(cin, articleIDstring);
+				if(!checkIfValid(articleIDstring, articleID)){
+				continue;
+				}
 
 				myMsgHandlr.sendCode(Protocol::COM_DELETE_ART);
 				myMsgHandlr.sendIntParameter(groupID);
@@ -301,15 +362,27 @@ int main(int argc, char* argv[]) {
 			if(command == "readart"){
 				int groupID;
 				int articleID;
+				string groupIDstring;
+				string articleIDstring;
 
 				string title;
 				string authour;
 				string content;
-
+				
 				cout << "Enter the ID of the NewsGroup" << endl;
-				cin >> groupID;
+				getline(cin, groupIDstring);
+
+				//int groupTemp;
+				if(!checkIfValid(groupIDstring, groupID)){
+				continue;
+				}
+
 				cout << "Enter the ID of the Article" << endl;
-				cin >> articleID;
+				getline(cin, articleIDstring);
+
+				if(!checkIfValid(articleIDstring, articleID)){
+				continue;
+				}
 
 				myMsgHandlr.sendCode(Protocol::COM_GET_ART);
 				myMsgHandlr.sendIntParameter(groupID);
@@ -348,7 +421,7 @@ int main(int argc, char* argv[]) {
 				exit(1); 
 			}
 
-			cout << "No such command available, type help to get a list of available commands!" << endl;
+			cout << "No such command available, type 'help' to get a list of available commands!" << endl;
 
 			//writeNumber(conn, nbr);
 			//string reply = readString(conn);

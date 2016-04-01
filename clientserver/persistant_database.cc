@@ -25,7 +25,7 @@ using namespace std;
 Persistant_Database::Persistant_Database(){
 	int maxID2 = 0;
 	int status;
- 	status = mkdir("c:/DBRoot", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+ 	status = mkdir("/h/d8/o/dat12jn2/DBRoot", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
  	if(status == 0){
 		cout << "Persistant_Database has been created!" << endl;
  	} else if(status == -1){
@@ -39,7 +39,7 @@ Persistant_Database::Persistant_Database(){
 	struct dirent *pent;
 	cout << "vart fastnar vi? #2 " << endl;
 	
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		throw NewsGroupDoesNotExistException();
@@ -73,7 +73,7 @@ Persistant_Database::Persistant_Database(){
 		tempname.pop_back();
 
 		
-		string newdir = "c:/DBRoot/";
+		string newdir = "/h/d8/o/dat12jn2/DBRoot/";
 		newdir += pent->d_name;
 		DIR *pdir2;
 		struct dirent *pent2;
@@ -133,11 +133,11 @@ Persistant_Database::Persistant_Database(){
 	
 	cout << "the maxID variable: " << maxID << endl;
 	uniquenbr = maxID;
-
+	uniquenbr2 = maxID2;
 
 
 	//uniquenbr = 0;
-	uniquenbr2 = 0;
+	//uniquenbr2 = 0;
 }
 	
 /*---------------NewsGroup operations------------------*/
@@ -197,10 +197,10 @@ void Persistant_Database::createNewsGroup(string& theName){
 	//if(it == db.end()){
 	//	cout << "inserting into map" << endl;
 	//	db.insert(make_pair(uniquenbr, myNewsGroup));
-		
+		int temp = ++uniquenbr;
 		//string lol = to_string(++uniquenbr);
-		string dir = "c:/DBRoot/";
-		dir += "1";//lol; // OM TO_STRING HADE FUNKAT MED FATTIGA CYGWIN KANSKE???!?!?!
+		string dir = "/h/d8/o/dat12jn2/DBRoot/";
+		dir += to_string(temp);//lol; // OM TO_STRING HADE FUNKAT MED FATTIGA CYGWIN KANSKE???!?!?!
 		dir += " ";
 		dir += theName;
 		cout << "the DIR to create: " << dir << endl;
@@ -231,8 +231,8 @@ void Persistant_Database::deleteNewsGroup(int idToBeRemoved){
 	bool rmFlag = false;
 	DIR *pdir;
 	struct dirent *pent;
-	string dir = "c:/DBRoot";
-	// idToBeRemoved NEEDS THE TO_STRING
+	string dir = "/h/d8/o/dat12jn2/DBRoot";
+	// idToBeRemoved NEEDS THE TO_STRING ###########################################################################
 	//dir += "/";
 	//dir += "1*"; 
 	cout << "the dir string: " << dir << endl;
@@ -256,8 +256,12 @@ void Persistant_Database::deleteNewsGroup(int idToBeRemoved){
 		stringstream ss(tempstr);
 		string id;
 		string name;
-		while(ss){
-			ss >> id >> name;
+		string tempname;
+		ss >> id;
+		
+		while(ss >> name){
+			ss >> name;
+			tempname += name;
 		} 
 		//THIS 1 SHOULD BE id if the fucking to_string would work...
 				
@@ -305,7 +309,7 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 	DIR *pdir;
 	struct dirent *pent;
 
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
@@ -355,7 +359,7 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 	}
 	closedir(pdir);
 
-	reverse(tempVec.begin(), tempVec.end());
+	
 	return tempVec;
 }
 
@@ -364,13 +368,13 @@ vector<NewsGroup> Persistant_Database::listNewsGroup(){
 /*----------------Article operations------------------*/
 void Persistant_Database::createArticle(	string& title, string& author, 
 											string& content, int groupID){
-	Article myArticle(title, author, content);
-	myArticle.id = ++uniquenbr2;
+	//Article myArticle(title, author, content);
+	//myArticle.id = ++uniquenbr2;
 	
 	bool createflag = false;
 	DIR *pdir;
 	struct dirent *pent;
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
@@ -393,11 +397,12 @@ void Persistant_Database::createArticle(	string& title, string& author,
 		} 
 		if(atoi(id.c_str()) == groupID){
 			createflag = true;
+			int temp = ++uniquenbr2;
 			cout << "Found the folder to where the article is supposed to be added " << endl;
-			string articleDir = "c:/DBRoot/";
+			string articleDir = "/h/d8/o/dat12jn2/DBRoot/";
 			articleDir += pent->d_name;
 			articleDir += "/";
-			articleDir += "1"; // this should be id.to_string()
+			articleDir += to_string(temp); //to_string(id); // this should be id.to_string() #################################################################
 			articleDir += " ";
 			articleDir += title;
 			articleDir += ".txt";
@@ -434,12 +439,12 @@ void Persistant_Database::createArticle(	string& title, string& author,
 }
 void Persistant_Database::deleteArticle(int groupID, int articleID){
 	
-	string tempdir = "c:/DBRoot/";
+	string tempdir = "/h/d8/o/dat12jn2/DBRoot/";
 	bool foundNG = false;
 	bool foundArt = false;
 	DIR *pdir;
 	struct dirent *pent;
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
@@ -474,7 +479,7 @@ void Persistant_Database::deleteArticle(int groupID, int articleID){
 			
 			DIR *pdir2;
 			struct dirent *pent2;
-			string dir = "c:/DBRoot/";
+			string dir = "/h/d8/o/dat12jn2/DBRoot/";
 			dir += pent->d_name;
 			tempdir += id;
 			tempdir += "\\ ";
@@ -578,7 +583,7 @@ vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 	DIR *pdir;
 	struct dirent *pent;
 
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
@@ -610,7 +615,7 @@ vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 			DIR *pdir2;
 			struct dirent *pent2;
 
-			string dir = "c:/DBRoot/";
+			string dir = "/h/d8/o/dat12jn2/DBRoot/";
 			dir += pent->d_name;
 			cout << "opening second dir: " << dir << endl;
 			pdir2=opendir(dir.c_str()); 
@@ -693,7 +698,7 @@ vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 	// 	throw NewsGroupDoesNotExistException();
 	// 	cout << "throw no such group found" << endl;
 	// }
-	reverse(tempVec.begin(), tempVec.end());
+	//reverse(tempVec.begin(), tempVec.end());
 	return tempVec;
 
 }
@@ -704,7 +709,7 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 
 	DIR *pdir;
 	struct dirent *pent;
-	pdir=opendir("c:/DBRoot"); 
+	pdir=opendir("/h/d8/o/dat12jn2/DBRoot"); 
 	if (!pdir){
 		printf ("opendir() failure; terminating");
 		exit(1);
@@ -730,7 +735,7 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 			/*SECOND READ*/
 			DIR *pdir2;
 			struct dirent *pent2;
-			string newdir = "c:/DBRoot/";
+			string newdir = "/h/d8/o/dat12jn2/DBRoot/";
 			newdir += pent->d_name;
 			cout << "the new dir to read from: " << newdir << endl;
 			pdir2=opendir(newdir.c_str()); 
@@ -766,10 +771,10 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 					cout << "TITLE CREATED: " << title << endl;
 					cout << "Found the Article to read " << endl;
 
-					string articleDir = "c:\\DBRoot\\";
+					string articleDir = "/h/d8/o/dat12jn2/DBRoot/";
 					articleDir += pent->d_name;
-					articleDir += "\\";
-					articleDir += "1"; // this should be id.to_string()
+					articleDir += "/";
+					articleDir += id; //to_string(id); // this should be id.to_string() // #######################################################
 					articleDir += " ";
 					articleDir += tempname;
 					cout << "The made articlename: " << articleDir << endl;
