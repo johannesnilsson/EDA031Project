@@ -731,7 +731,7 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 			ss >> name;
 		} 
 
-		if(atoi(id.c_str()) == groupID){
+		if(atoi(id.c_str()) == groupID){ //
 			/*SECOND READ*/
 			DIR *pdir2;
 			struct dirent *pent2;
