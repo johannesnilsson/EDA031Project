@@ -5,7 +5,7 @@
 #include "messagehandler.h"
 #include "protocol.h"
 //#include "common.h"
-#include "cache_database.h"
+//#include "cache_database.h"
 #include "exceptions.h"
 
 #include <memory>
@@ -14,6 +14,20 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+
+		#include "cache_database.h"
+
+	/*
+		#ifdef cpp_variable
+	//	cout << " the variable was enabled" << endl;
+		#include "cache_database.h"
+		#else
+		//cout << " the variable was disabled" << endl;
+	#include "persistant_database.h"
+		
+		#endif
+
+*/
 //#include "persistant_database.h"
 
 using namespace std;
@@ -40,8 +54,19 @@ int main(int argc, char* argv[]){
 	}
 	
 	MessageHandler myMsgHandler;
+
 	Cache_Database myDB;
-	//Persistant_Database myDB;
+	/*
+			#ifdef cpp_variable
+		cout << " the variable was enabled" << endl;
+		Cache_Database myDB;
+		#else
+		cout << " the variable was disabled" << endl;
+		Persistant_Database myDB;
+		
+		#endif
+
+*/
 
 	while (true) {
 		auto conn = server.waitForActivity();

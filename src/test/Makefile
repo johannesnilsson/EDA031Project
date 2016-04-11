@@ -14,21 +14,24 @@ LDFLAGS   = -g -L..
 #CPPFLAGS += -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 #LDFLAGS +=  -stdlib=libc++
+#CPPFLAGS += -D cpp_variable="1"
 
 # Libraries
 LDLIBS = -lclientserver
 
 # Targets
-PROGS = myserver myclient basicServer cache_server
+PROGS = myserver client cache_server persistant_server
 
 all: $(PROGS)
 
 # Targets rely on implicit rules for compiling and linking
 # The dependency on libclientserver.a is not defined.
 myserver: myserver.o  
-myclient: myclient.o
-basicServer: basicServer.o
+client: client.o
 cache_server: cache_server.o
+persistant_server: persistant_server.o
+
+#johannes: johannes.o
 
 # Phony targets
 .PHONY: all clean

@@ -17,14 +17,22 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-all: libclientserver.a
+PROGS = multExe
+all: $(PROGS)
+
+install:
+	cp src/test/client bin
+	cp src/test/cache_server bin
+	cp src/test/persistant_server bin
+
+uninstall:
+	rm bin/*
 
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
 # Doesn't seem to do any damage on other systems.
 
-libclientserver.a: connection.o server.o messagehandler.o cache_database.o persistant_database.o
-	ar rv libclientserver.a  connection.o server.o messagehandler.o cache_database.o persistant_database.o
-	ranlib libclientserver.a
+multExe: 
+		cd src && $(MAKE)
 
 # Phony targets
 .PHONY: all clean
@@ -32,7 +40,7 @@ libclientserver.a: connection.o server.o messagehandler.o cache_database.o persi
 # Standard clean
 clean:
 	rm -f *.o libclientserver.a
-
+	cd src && $(MAKE) clean
 # Generate dependencies in *.d files
 %.d: %.cc
 	@set -e; rm -f $@; \
