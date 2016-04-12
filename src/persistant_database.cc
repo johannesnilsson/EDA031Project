@@ -143,26 +143,24 @@ void Persistant_Database::createNewsGroup(string& theName){
 			ss >> name;
 			tempname += name;
 		}
+		if(tempname == theName){
+			throw NewsGroupAlreadyExistsException();
+		} else {
+			tempname.clear();
+		}
 	}
 	if (errno){
 		printf ("readdir() failure; terminating");
 		exit(1);
 	}
 	closedir(pdir2);
-	cout << "TEMPNAME == THENAME" << tempname << ":" << theName << endl;
-	if(!(tempname == theName))
-	{
+
 		int temp = ++uniquenbr;
 		string dir = "../src/DBRoot/";
 		dir += to_string(temp);
-		dir += "\\ ";
+		dir += " ";
 		dir += theName;
-		string command = "mkdir -p ";
-		command += dir;
-		system(command.c_str());
-	} else {
-	throw NewsGroupAlreadyExistsException();
-	}
+		int status = mkdir((char*)dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 void Persistant_Database::deleteNewsGroup(int idToBeRemoved){
@@ -281,13 +279,11 @@ void Persistant_Database::createArticle(	string& title, string& author,
              continue;
           }
 		string tempstr(pent->d_name);
-		cout << "THE create article name: " << pent->d_name << endl;
 		stringstream ss(tempstr);
 		string id;
 		string name;
 		ss >> id;
-		cout << "THE GROUP ID: " << id << endl;
-		cout << "THE GROUP ID ENTERED: " << groupID << endl;
+
 		while(ss){
 			ss >> name;
 		}
@@ -384,6 +380,7 @@ void Persistant_Database::deleteArticle(int groupID, int articleID){
 				while(ss){
 					ss >> name;
 				}
+
 				if(atoi(id.c_str()) == articleID){
 					foundArt = true;
 					string command = "rm -f ";
@@ -398,14 +395,17 @@ void Persistant_Database::deleteArticle(int groupID, int articleID){
 
 
 				}
-				if(!foundNG){
-					cout << "Could not find specified NewsGroup!" << endl;
-					throw NewsGroupDoesNotExistException();
-				}
-				if(!foundArt){
-					cout << "Could not find the specified Article!" << endl;
-				}
+
 	}
+	if(!foundNG){
+		cout << "Could not find specified NewsGroup!" << endl;
+		throw NewsGroupDoesNotExistException();
+	}
+	if(!foundArt){
+		cout << "Could not find the specified Article!" << endl;
+		throw ArticleDoesNotExistException();
+	}
+
 	if (errno){
 	printf ("readdir() failure; terminating");
 	exit(1);
@@ -413,18 +413,16 @@ void Persistant_Database::deleteArticle(int groupID, int articleID){
 	closedir(pdir2);
 
 		}
-		if(!foundNG){
-			cout << "Could not find specified NewsGroup!" << endl;
-			throw NewsGroupDoesNotExistException();
-		}
-
-		cout << "id is:" << id << " name is: " << name << endl;
 	}
 	if (errno){
 	printf ("readdir() failure; terminating");
 	exit(1);
 	}
 	closedir(pdir);
+
+	if(!foundNG){
+			throw NewsGroupDoesNotExistException();
+		}
 }
 
 vector<Article> Persistant_Database::listArticles(int inNewsGroup){
@@ -460,7 +458,6 @@ vector<Article> Persistant_Database::listArticles(int inNewsGroup){
 
 			string dir = "../src/DBRoot/";
 			dir += pent->d_name;
-			cout << "opening second dir: " << dir << endl;
 			pdir2=opendir(dir.c_str());
 			if (!pdir2){
 				printf ("opendir() failure; terminating");
@@ -515,6 +512,7 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 	string title;
 	string author;
 	string content;
+	bool readFlag = false;
 
 	DIR *pdir;
 	struct dirent *pent;
@@ -581,6 +579,7 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 					articleDir += tempname;
 					articleDir.pop_back();
 					ifstream inputFile(articleDir);
+					readFlag = true;
 
 					string templine;
 					int whilecounter = 0;
@@ -611,7 +610,11 @@ Article Persistant_Database::readArticle(int groupID, int articleID){
 	}
 	closedir(pdir);
 
-	Article myArticle(title, author, content);
-	return myArticle;
+	if(readFlag){
+		Article myArticle(title, author, content);
+		return myArticle;
+	} else {
+		throw ArticleDoesNotExistException();
+	}
 }
 /*----------------------------------------------------*/
